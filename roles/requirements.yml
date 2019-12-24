@@ -1,0 +1,6 @@
+---
+
+- name: tps_disk
+  src: https://github.com/rv-ansible/disk.git
+  scm: git
+    

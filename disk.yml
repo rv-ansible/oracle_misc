@@ -1,0 +1,87 @@
+---
+
+- name: Get disk info and mail it 
+  hosts: all 
+  vars:
+    pre_check_tmp: /tmp/pre-check                    
+    datestamp: "{{lookup('pipe','date +%Y%m%d')}}"
+    send_mail: "FALSE"
+    letters:   # extra-vars or survey
+      - b
+      - c
+      - d
+      - e
+  roles: 
+    - { role: common, get_raw_disk_prefix: true, become: true, include_mpath: false }
+    - { role: mail_logs, create_log: true, lines: true } 
+    - { role: disk, get_raw_disk: true, become: true }
+    - { role: mail_logs, mail: true } 
+    - { role: common, add_email: true }  
+  tags: get_raw_disk    
+  
+- name: Create inventory
+  hosts: all 
+  vars:
+    pre_check_tmp: /tmp/pre-check                    
+    datestamp: "{{lookup('pipe','date +%Y%m%d')}}"
+    letters:     # extra-vars or survey
+      - b
+      - c
+      - d
+      - e
+    skip_disks:   # extra-vars or survey ex server1sdb
+  roles: 
+    - { role: common, get_raw_disk_prefix: true, become: true, include_mpath: false }
+    - { role: mail_logs, create_log: true, lines: false } 
+    - { role: common, create_inventory: true, become: true }
+    - { role: mail_logs, mail: true, send_mail: 'FALSE' } 
+    - { role: common, mv_email: true }
+  tags: create_inventory    
+    
+- name: Create partition   
+  hosts: all
+  become: true
+  any_errors_fatal: True
+  vars_files: 
+       - "./email.yml"
+  tasks:
+    - name: Loop over role
+      include_role:
+       name: disk
+      vars:
+        disk_process: DPVLFM   # D=create raw disk P=physical volume V=volumegroup L=logicalvolume F=filesystem M=mount
+        create_partition_nolog: true
+        server: "{{ item.server0 }}"
+        disk1:  "{{ item.disk0 }}"
+        pvname: "{{ item.disk0 }}"
+        fsname: "{{ item.fsname0 }}"
+        vgname: "{{ item.vgname0 }}"
+        lvname: "{{ item.lvname0 }}"
+      with_items: 
+         - "{{disk_items}}"
+  tags: create_partition
+
+- name: Remove partition   
+  hosts: all
+  become: true
+  any_errors_fatal: True
+  vars_files: 
+       - "./email.yml"
+  tasks:
+    - name: Loop over role
+      include_role:
+       name: disk
+      vars:
+        disk_process: DPVLFM
+        force: yes
+        remove_partition_nolog: true
+        server: "{{ item.server0 }}"
+        disk1:  "{{ item.disk0 }}"
+        pvname: "{{ item.disk0 }}"
+        fsname: "{{ item.fsname0 }}"
+        vgname: "{{ item.vgname0 }}"
+        lvname: "{{ item.lvname0 }}"
+      with_items: 
+         - "{{disk_items}}"
+  tags: remove_partition
+   

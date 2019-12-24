@@ -1,0 +1,16 @@
+
+- name: testing   
+  hosts: localhost ansible_connection=local
+  gather_facts: false
+  become: true
+  tasks:
+  
+   - name: Add oracle user limits
+     lineinfile: 
+         dest: /etc/security/limits.conf 
+         line: "oracle {{ item.limit }} {{ item.type}} {{ item.value }}"
+     with_items:
+       - { limit: 'soft', type: 'nofile', value: '256' }
+       - { limit: 'hard', type: 'nofile', value: '256' }
+       - { limit: 'soft', type: 'nproc', value: '256' }
+       - { limit: 'hard', type: 'nproc', value: '256' }

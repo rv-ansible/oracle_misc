@@ -1,0 +1,5 @@
+---
+# tasks file for user
+
+- include_tasks: user1.yml
+  when: user1|default(False)==True

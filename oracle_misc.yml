@@ -1,0 +1,26 @@
+---
+
+
+- name: Add oracle user
+  hosts: all
+  become: true
+  any_errors_fatal: True
+  roles:
+    - { role: common, user1: true, oracle_account_passwd: "{{xtvar1}}"}
+  no_log: true
+  tags: add_user 
+
+- name: Install libraries
+  hosts: all
+  become: true
+  roles:
+    - { role: common, yum1: true }  
+  tags: install_libraries
+
+- name: Install libraries
+  hosts: all
+  become: true
+  roles:
+    - { role: common, yum1: true }  
+  tags: install_libraries
+  

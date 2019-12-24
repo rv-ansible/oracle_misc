@@ -1,0 +1,5 @@
+---
+# tasks file for config
+
+- include_tasks: config1.yml
+  when: config1|default(False)==True

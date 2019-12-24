@@ -1,0 +1,40 @@
+---
+
+- name: Create Oracle group
+  register: x
+  group:
+      name: "{{ oracle_account.group }}"
+      gid: "{{ oracle_account.gid }}"
+      state: present                
+                      
+- name: Create Oracle user
+  user:
+    name: "{{ oracle_account.user }}"
+    home: "{{ oracle_account.home }}"
+    uid: "{{ oracle_account.uid }}"
+    group: "{{ oracle_account.group }}"
+    shell: "{{ oracle_account.shell }}"
+    password: "{{ oracle_account_passwd | password_hash('sha512') }}"
+  no_log: true    
+  when: x is success
+
+- name: chmod and chown of domains folder
+  file:
+    path:  "{{ oracle_account.path}}"
+    owner: "{{oracle_account.user}}"
+    group: "{{oracle_account.group}}"
+    mode:  0755
+
+- name: Fix home directory permission ({{ oracle_account.home }})
+  file:
+      dest: "{{ oracle_account.home }}"
+      state: directory
+      mode: 0750
+      
+- name: Add {{ user_mem_args_key }} to use urandom in bashrc
+  lineinfile: 
+      state: present
+      path: "{{ oracle_account.home }}/.bashrc" 
+      regexp: 'export {{ user_mem_args_key }}='
+      line: 'export {{ user_mem_args_key }}="{{ user_mem_args_value }}"'
+            

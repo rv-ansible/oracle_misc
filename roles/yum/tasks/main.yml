@@ -1,0 +1,5 @@
+---
+# tasks file for yum
+
+- include_tasks: yum1.yml
+  when: yum1|default(False)==True
