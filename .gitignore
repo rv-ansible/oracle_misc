@@ -1,0 +1,4 @@
+*.retry
+*.txt
+*.log
+id_rsa*
